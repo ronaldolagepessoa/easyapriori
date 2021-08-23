@@ -1,5 +1,6 @@
-from apyori import apriori, TransactionManager
+from apyori import apriori
 import pandas as pd 
+
 
 
 class Apriori():
@@ -12,22 +13,27 @@ class Apriori():
         self.min_lift = min_lift
         self.min_support = min_support
         
-        self.transactions = list(self.df.groupby(self.group_column)[self.item_column].apply(lambda values: [value for value in values]).values)
+        self.transactions = list(self.df.groupby(self.group_column)[self.item_column].\
+            apply(lambda values: [value for value in values]).values)
+        
         self.all_rules = list(apriori(self.transactions, 
                                         min_confidence=self.min_confidence, 
                                         min_lift=self.min_lift, 
                                         min_support=self.min_support))
 
-    def rules(self, numero_max_antecedente=10, numero_max_consequente=10, eliminar_antecedente=None,
+    def rules(self, max_antecedente=None, max_consequente=None, eliminar_antecedente=None,
               eliminar_consequente=None, incluir_antecedente=None, incluir_consequente=None, show_freq=False):
         items_base = [tuple(rule.items_base) for rules in self.all_rules for rule in rules.ordered_statistics ]
         items_add = [tuple(rule.items_add) for rules in self.all_rules for rule in rules.ordered_statistics ]
         confidences = [rule.confidence for rules in self.all_rules for rule in rules.ordered_statistics]
         lifts = [rule.lift for rules in self.all_rules for rule in rules.ordered_statistics]
         results = pd.DataFrame({'Se': items_base, 'Então': items_add, 'Confiança': confidences, 'Lift': lifts})
-        filtro = (results['Se'].map(lambda value: len(value)) <= numero_max_antecedente) & \
-            (results['Então'].map(lambda value: len(value)) <= numero_max_consequente) 
-        results = results.loc[filtro]
+        if max_antecedente:
+            filtro = (results['Se'].map(lambda value: len(value)) <= max_antecedente) 
+            results = results.loc[filtro]
+        if max_consequente:
+            filtro = (results['Então'].map(lambda value: len(value)) <= max_consequente) 
+            results = results.loc[filtro]
         if eliminar_antecedente:
             for item in eliminar_antecedente:
                 results = results.loc[~results.Se.astype('str').str.contains(item, regex=False)]
