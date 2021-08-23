@@ -11,7 +11,7 @@ setup(
     # Needed for dependencies
     install_requires=['pandas', 'apyori'],
     # *strongly* suggested for sharing
-    version='0.1',
+    version='1.0.0',
     # The license can be anything you like
     license='FREE',
     description='Solução simples para utilização do algoritmo Apriori no python',
