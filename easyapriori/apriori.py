@@ -51,13 +51,11 @@ class Apriori():
                 return row.loc[row[self.item_column].isin(itemlist), self.item_column].count()
             def freq_se(row, df):
                 return df.groupby(self.group_column).apply(lambda row1: func(row1, row['Se'].values[0])).sum()
-            def freq_entao(row, df):
-                return df.groupby(self.group_column).apply(lambda row1: func(row1, row['Então'].values[0])).sum()
             
             freq_se = results.groupby('Se').apply(lambda row: freq_se(row, self.df)).reset_index(name='Freq_Se')
-            freq_entao = results.groupby('Então').apply(lambda row: freq_entao(row, self.df)).reset_index(name='Freq_Então')
             results = pd.merge(results, freq_se, left_on='Se', right_on='Se')
-            results = pd.merge(results, freq_entao, left_on='Então', right_on='Então')
+            results['Freq_Então'] = results['Freq_Se'] * results['Confiança']
+
             
         return results
     
