@@ -2,7 +2,14 @@ from apyori import apriori
 import pandas as pd 
 
 
-
+def transform_dataframe(df):
+    for column in df.select_dtypes(exclude='object').columns:
+        df.loc[df[column] < df[column].quantile(0.25), column + '_cat'] = column + '_baixo'
+        df.loc[df[column].between(df[column].quantile(0.25), df[column].quantile(0.75)), column + '_cat'] = column + '_medio'
+        df.loc[df[column] > df[column].quantile(0.75), column + '_cat'] = column + '_alto'
+        df = df.drop(column, axis=1)
+    df = df.stack().reset_index().rename(columns={'level_0': 'coluna de agrupamento', 0: 'valores'}).drop('level_1', axis=1)
+    return df
 class Apriori():
     
     def __init__(self, df, group_column, item_column, min_confidence=0.5, min_lift=1.1, min_support=0.1):
@@ -67,11 +74,14 @@ class Apriori():
 
         
 if __name__ == '__main__':
-    df = pd.read_csv('Distribuidora.csv')
-    model = Apriori(df, 'NOTA', 'NOME_PROD')
-    rules = model.rules(show_freq=True)
+    df = pd.read_csv('pizza.csv')
+    df.drop('numero', axis=1, inplace=True)
+    # model = Apriori(df, 'NOTA', 'NOME_PROD')
+    # rules = model.rules(show_freq=True)
     
-    print(rules)
+    # print(rules)
+    df = transform_dataframe(df)
+    print(df)
     
     # def func(row, itemlist):
     #     return row.loc[row['NOME_PROD'].isin(itemlist), 'NOME_PROD'].count()
